@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+ 
+<head>
+    <title>Smart Plants</title>
+ 
+ 
+    <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+ 
+    <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
+ 
+ 
+</head>
+ 
+<body>
+ 
+    <div class="container">
+        <div class="header">
+            <nav>
+                <ul class="nav nav-pills pull-right">
+                    <li role="presentation" class="active"><a href="/">Home</a>
+                    </li>
+                    <li role="presentation"><a href="showSignIn">Sign In</a>
+                    </li>
+                    <li role="presentation"><a href="showSignUp">Sign Up</a>
+                    </li>
+			Login authentication with Flask
+
+
+ 
+
+flask-logo
+The Flask Logo
+In this tutorial you will learn how to build a login web app with Python using Flask.
+Related course
+Complete Python Web Course: Build 8 Python Web Apps
+
+Installing Flask
+
+Install Flask using the command below:
+
+$ pip install Flask
+Create a file called hello.py
+
+from flask import Flask
+app = Flask(__name__)
+ 
+@app.route("/")
+def index():
+    return "Hello World!"
+ 
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=4000)
+Finally run the web app using this command:
+
+$ python hello.py
+Open http://localhost:4000/ in your webbrowser, and “Hello World!” should appear.
+
+Building a Flask login screen
+
+Create this Python file and save it as app.py:
+
+from flask import Flask
+from flask import Flask, flash, redirect, render_template, request, session, abort
+import os
+ 
+app = Flask(__name__)
+ 
+@app.route('/')
+def home():
+    if not session.get('logged_in'):
+        return render_template('login.html')
+    else:
+        return "Hello Boss!"
+ 
+@app.route('/login', methods=['POST'])
+def do_admin_login():
+    if request.form['password'] == 'password' and request.form['username'] == 'admin':
+        session['logged_in'] = True
+    else:
+        flash('wrong password!')
+    return home()
+ 
+if __name__ == "__main__":
+    app.secret_key = os.urandom(12)
+    app.run(debug=True,host='0.0.0.0', port=4000)
+There are two routes (paths you can see in your browser URL bar) created here:
+
+@app.route('/')
+@app.route('/login', methods=['POST'])
+The first one displays the login screen or the home screen, based on the condition if you are logged in. The second route validates the login variables on login.
+
+We create the directory /templates/. Create the file /templates/login.html with this code:
+
+{% block body %}
+{% if session['logged_in'] %}
+<p>You're logged in already!</p>
+{% else %}
+<form action="/login" method="POST">
+  <input type="username" name="username" placeholder="Username">
+  <input type="password" name="password" placeholder="Password">
+  <input type="submit" value="Log in">
+</form>
+{% endif %}
+{% endblock %}
+                </ul>
+            </nav>
+            <h3 class="text-muted">Smart Plants</h3>
+        </div>
+ 
+        <div class="jumbotron">
+            <h1>Bucket List App</h1>
+            <p class="lead"></p>
+            <p><a class="btn btn-lg btn-success" href="showSignUp" role="button">Sign up today</a>
+            </p>
+        </div>
+ 
+        <div class="row marketing">
+            <div class="col-lg-6">
+                <h4>Bucket List</h4>
+                <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
+ 
+                <h4>Bucket List</h4>
+                <p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Cras mattis consectetur purus sit amet fermentum.</p>
+ 
+                <h4>Bucket List</h4>
+                <p>Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
+            </div>
+ 
+            <div class="col-lg-6">
+                <h4>Bucket List</h4>
+                <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
+ 
+                <h4>Bucket List</h4>
+                <p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Cras mattis consectetur purus sit amet fermentum.</p>
+ 
+                <h4>Bucket List</h4>
+                <p>Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
+            </div>
+        </div>
+ 
+        <footer class="footer">
+            <p>&copy; Bach Khoa Ha Noi 2017</p>
+        </footer>
+ 
+    </div>
+</body>
+ 
+</html>

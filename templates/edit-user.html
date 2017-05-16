@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block stylesheet %}
+{% endblock %}
+{% block body %}
+<form style="max-width: 300px; margin: 0 auto 100px auto;" action="/updateUser" method="POST">
+        <h3>Update your information</h3>
+<div class="form-group">
+    <label for="name">New name:</label>
+    <input type="name" name="name" class="form-control" id="name">
+  </div>
+  <div class="form-group">
+    <label for="pwd">New password:</label>
+    <input type="password" name="password" class="form-control" id="password">
+  </div>
+  <button type="submit" name="action" class="btn btn-default">Confirm</button>
+</form>
+{% endblock %}
+

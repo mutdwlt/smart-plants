@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block stylesheet %}
+{% endblock %}
+{% block body %}
+<form style="max-width: 300px; margin: 0 auto 100px auto;" action="/editPlants" method="POST">
+        <h3>Update your information</h3>
+  <div class="form-group">
+    <label for="mac_address">Plants Name:</label>
+    <input type="text" name="plants_name" value="{{plants_name}}" class="form-control" id="plants_name">
+  </div>
+<div class="form-group">
+    <label for="mac_address">Lowest Sunlight Level:</label>
+    <input type="text" name="sun_b" value="{{sun_b}}" class="form-control" id="sun_b">
+  </div>
+<div class="form-group">
+    <label for="mac_address">Higest Sunlight Level:</label>
+    <input type="text" name="sun_t" value="{{sun_t}}" class="form-control" id="sun_t">
+  </div>
+<div class="form-group">
+    <label for="mac_address">Lowest Moisture Level:</label>
+    <input type="text" name="moi_b" value="{{moi_b}}" class="form-control" id="moi_b">
+  </div>
+<div class="form-group">
+    <label for="mac_address">Higest Moisture Level:</label>
+    <input type="text" name="moi_t" value="{{moi_t}}" class="form-control" id="moi_t">
+  </div>
+<div class="form-group">
+    <label for="mac_address">Lowest Temperature Level:</label>
+    <input type="text" name="tem_b" value="{{tem_b}}" class="form-control" id="tem_b">
+  </div>
+<div class="form-group">
+    <label for="mac_address">Higest Temperature Level:</label>
+    <input type="text" name="tem_t" value="{{tem_t}}" class="form-control" id="tem_t">
+  </div>
+<div class="form-group">
+    <label for="mac_address">Lowest Fertility Level:</label>
+    <input type="text" name="fer_b" value="{{fer_b}}" class="form-control" id="fer_b">
+  </div>
+<div class="form-group">
+    <label for="mac_address">Higest Fertility Level:</label>
+    <input type="text" name="fer_t" value="{{fer_t}}" class="form-control" id="fer_t">
+  </div>
+  <button type="submit" name="action" class="btn btn-default">Confirm</button>
+</form>
+{% endblock %}
+
+

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Smart Plants</title>
+    <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	{% block stylesheet %}{% endblock %}
+</head>
+
+<body>
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+        {% if messages %}
+        {% for category, message in messages %}
+<div class="alert alert-{{category}} alert-dismissable">
+    <a href="#" class="close" data-dismiss="alert" aria-label="close"> &times</a>
+   {{ message }}
+  </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        <div class="header">
+            <nav>
+                <ul class="nav nav-pills pull-right">
+                    <li role="presentation"><a href="/">Home</a>
+                    </li>
+                        {% if session.logged_in %}
+			<li role="presentation" ><a href="plants">Plants info</a></li>
+                    <li role="presentation" ><a href="user">Hello {{session.name}}</a></li>
+			<li role="presentation"><a href="logout">Sign Out</a>
+                    </li>
+                        {% else %}
+                    <li role="presentation"><a href="showSignIn">Sign In</a>
+                    </li>
+                        {% endif %}
+                </ul>
+            </nav>
+            <h3 class="text-muted">Smart Plants</h3>
+	</div>
+  
+
+	{% block body %}{% endblock %}
+	
+
+	<footer class="footer">
+            <p>&copy; Ngo Van Thinh -  Bach Khoa Ha Noi 2017</p>
+        </footer>
+
+    </div>
+</body>
+</html>
