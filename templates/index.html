@@ -4,14 +4,18 @@
 
 	<link href="../static/style_clock.css?v=1.1" rel="stylesheet" />
         <link href="../static/style_toggle.css?v=1.1" rel="stylesheet" />
-
+	<style>
+		#update-btn:hover{
+			background-color: #D32F2F;
+		}
+	</style>
 {% endblock %}
 
 {% block body %} 
         <div class="jumbotron" style="background-image: url('https://d3atagt0rnqk7k.cloudfront.net/wp-content/uploads/2016/10/20114756/how-to-train-cannabis-plant-header-1280x800.jpg'); background-size: cover">
             <h1 style="color: white;">{{session.plants_name}}</h1>
             <p class="lead"></p>
-            <p><a class="btn btn-lg btn-success" href="history" role="button"> View data history</a>
+            <p><a class="btn btn-lg btn-success" href="history" role="button"> View data report</a>
             </p>
         </div>	
 	<div class="row">
@@ -26,7 +30,7 @@
 		
 		<div class="col-sm-4">
 			<form action="/" method="post">
-  				<button type="submit" style="font-size:26px; padding: 12px; display: block; color: red;" name="action" class="btn btn-default">Update data</button>
+  				<button type="submit" style="font-size:26px; padding: 12px; display: block; color: white;background-color:#E53935;" name="action" class="btn btn-default" id="update-btn">Update data</button>
 			</form>
 		</div>
 	</div>
@@ -37,22 +41,22 @@
             <div class="col-sm-5">
 		<div class="row">
 			<h4 style="display:inline"><span class="glyphicon glyphicon-flash"></span> Sunlight:</h4>
-			<span style="float:right"><h2 style="display:inline;color:red;">{{session.sun}}</h2><h3 style="display: inline">lux</h3></span>
+			<span style="float:right"><h2 style="display:inline;color:#F44336;">{{session.sun}}</h2><h3 style="display: inline">lux</h3></span>
 		</div> 
                 <div class="row">
 			<h4 style="display:inline"><span class="glyphicon glyphicon-cloud"></span> Temperature:</h4>   
-                     <span style="float:right"><h2 style="display:inline;color: red;">{{session.tem}}</h2><h3 style="display: inline">&#8451</h3></span>
+                     <span style="float:right"><h2 style="display:inline;color: #F44336;">{{session.tem}}</h2><h3 style="display: inline">&#8451</h3></span>
                 </div>
             </div>
  
             <div class="col-sm-5 col-sm-offset-2">
                 <div class="row">
 			<h4 style="display:inline"><span class="glyphicon glyphicon-tint"></span> Soil moisture:</h4>
-                        <span style="float:right"><h2 style="display:inline;color:red;">{{session.moi}}</h2><h3 style="display: inline">%</h3></span>
+                        <span style="float:right"><h2 style="display:inline;color:#F44336;">{{session.moi}}</h2><h3 style="display: inline">%</h3></span>
                 </div>
                 <div class="row">
 			<h4 style="display:inline"><span class="glyphicon glyphicon-grain"></span> Fertility:</h4>
-                        <span style="float:right"><h2 style="display:inline;color:red;">{{session.fer}}</h2><h3 style="display: inline">us/cm</h3></span>
+                        <span style="float:right"><h2 style="display:inline;color:#F44336;">{{session.fer}}</h2><h3 style="display: inline">us/cm</h3></span>
                 </div>
             </div>
         </div>

@@ -83,13 +83,14 @@ def main():
                 	cursor.close()
                 	conn.close()
 		address = session['mac']
+		address = "C4:7C:8D:60:93:25"
 		try:
 			requester = GATTRequester(address)
 			#Read battery and firmware version attribute
 			data=requester.read_by_handle(0x0038)[0]
 			battery, version = unpack('<B6s',data)
 			#Enable real-time data reading
-			#requester.write_by_handle(0x0033, str(bytearray([0xa0, 0x1f])))
+			requester.write_by_handle(0x0033, str(bytearray([0xa0, 0x1f])))
 			#Read plant data
 			data=requester.read_by_handle(0x0035)[0]
 			temperature, sunlight, moisture, fertility = unpack('<hxIBHxxxxxx',data)
@@ -101,7 +102,7 @@ def main():
 			session['time']=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 			session['battery']=battery
 			session['firmware']=version
-			flash('Update data successfully','success')
+			flash('Data updated successfully','success')
 		except:
 			flash('Could not update sensor value, please try again','danger')
 		return render_template('index.html')
@@ -218,6 +219,7 @@ def editPlants():
                 cursor.close()
                 conn.close()
                 flash('Your plants has been updated successfully','success')
+		session['plants_name'] = n_plants_name
                 return redirect(url_for('plants'))
         else:
                 conn = mysql.connect()
@@ -366,12 +368,71 @@ def logout():
     flash('You were logged out','success')
     return redirect(url_for('main'))
 
-@app.route("/history")
+@app.route("/add-data")
+def add_data():
+	conn = mysql.connect()
+        cursor = conn.cursor()
+	for i in range(0,11):
+		time = "2017-05-17 %02d:00:00" % i
+		if i%2 == 1:
+			tem = 31.3
+			moi = 18
+		else:
+			tem = 32.9
+			moi = 17
+		if i >5 and i<=13:
+			sun = 410-(13-i)*35
+		elif i>13 and i <19:
+			sun = 150+(19-i)*31
+		else:
+			sun = 0
+		fer = 11
+        	sql = "INSERT INTO sensor_data (sunlight,moisture,temperature,fertility,time) VALUE ('%d','%d','%f','%d','%s')" % (sun,moi,tem,fer,time)
+        	#cursor.execute(sql)
+	#conn.commit()
+	cursor.close()
+	conn.close()
+	return 'ok'
+
+@app.route("/history",methods=['POST','GET'])
 def history():
 	if not session.get('logged_in'):
 		flash('You need to sign in first','info')
 		return redirect(url_for('showSignIn'))
-	return render_template('history.html')
+	today = datetime.datetime.now().strftime("%Y-%m-%d")
+        input_date = today
+	if request.method == 'POST':
+		report_type = request.form['select1']
+		if report_type == '2':
+			x=1
+		elif report_type == '3':
+			x=1
+		elif report_type == '1':
+			input_date = request.form['date1']
+	tem = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+	sun = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+	moi = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+	fer = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+	conn = mysql.connect()
+       	cursor = conn.cursor()
+	sql = 'SELECT DATE(time) FROM sensor_data ORDER BY id LIMIT 1'
+	cursor.execute(sql)
+	results = cursor.fetchall()
+	for row in results:
+		min_date = row[0]
+     	sql = 'SELECT HOUR(time) AS hour,sunlight,moisture,temperature,fertility FROM sensor_data WHERE time LIKE \"' + input_date + '%\"' 
+      	cursor.execute(sql)
+      	results = cursor.fetchall()
+     	for row in results:
+		tem[row[0]] = row[3]
+		sun[row[0]] = row[1]
+		moi[row[0]] = row[2]
+		fer[row[0]] = row[4]
+	cursor.close()
+	conn.close()
+	return render_template('history.html',tem=tem,moi=moi,sun=sun,fer=fer,date=input_date,min_date=min_date,today=today)
+
+
 
 if __name__ == "__main__":
         app.run(host='0.0.0.0')

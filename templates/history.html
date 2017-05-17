@@ -6,6 +6,37 @@
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
 {% endblock %}
 {% block body %}
+<form action="history" class="row" style="margin-left:0; margin-right:0;border-bottom: 1px solid #e5e5e5;padding-bottom: 30px;" method="POST">
+	<div class="form-group col-sm-4">
+		<div class="row" style="margin:0">
+			<label for="sel1">Choose report type:</label>
+  		</div>
+		<div class="row" style="margin:0">
+		<select class="form-control" id="select1" name="select1" onchange="this.form.submit();">
+    			<option value="1" selected="selected">Daily report</option>
+    			<option value="2">Weekly report</option>
+    			<option value="3">Monthly report</option>
+  		</select>
+		</div>
+	</div>
+	<div class="form-group col-sm-4">
+  		<div class="row" style="margin:0">
+		<label for="date">Choose date:</label>
+		</div>
+		<div class="row" style="margin:0">
+  		<input type="date" class="form-control" id="date1" name="date1" value="{{date}}" min="{{min_date}}" max="{{today}}">
+		</div>
+	</div>
+	<div class="form-group col-sm-4">
+		<div class="row" style="margin:0">
+		<label for="date" style="color:white">.</label>
+		</div>
+		<div class="row" style="margin:0">
+		<button type="submit" name="action" class=" btn btn-default">Show data</button>	
+		</div>
+	</div>
+</form>
+<h3 style="text-align:center;">Daily report of your plants at {{date}}</h3>
 <h3>Sunlight:</h3>
 <canvas id="myChart_sun" width="700" height="250"></canvas>
 <h3>Moisture:</h3>
@@ -23,12 +54,12 @@ var ctx_fer = document.getElementById("myChart_fer");
 var myChart = new Chart(ctx_sun, {
     type: 'bar',
     data: {
-	labels: ["1", "2", "3", "4", "5", "6", "7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24"],
+	labels: ["0","1", "2", "3", "4", "5", "6", "7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23"],
     	datasets: [
         	{
 			backgroundColor: 'rgba(255,235,59,1)',
             		borderWidth: 0,
-            		data: [0, 0, 0, 0, 0, 0, 160,270,320,360,400,463,431,400,360,320,270,160,0,0,0,0,0,0],
+            		data: [{{sun[0]}},{{sun[1]}},{{sun[2]}},{{sun[3]}},{{sun[4]}},{{sun[5]}},{{sun[6]}},{{sun[7]}},{{sun[8]}},{{sun[9]}},{{sun[10]}},{{sun[11]}},{{sun[12]}},{{sun[13]}},{{sun[14]}},{{sun[15]}},{{sun[16]}},{{sun[17]}},{{sun[18]}},{{sun[19]}},{{sun[20]}},{{sun[21]}},{{sun[22]}},{{sun[23]}}],
         	}
     	]
     	},
@@ -55,12 +86,12 @@ var myChart = new Chart(ctx_sun, {
 var myChart = new Chart(ctx_moi, {
     type: 'bar',
     data: {
-        labels: ["1", "2", "3", "4", "5", "6", "7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24"],
+        labels: ["0","1", "2", "3", "4", "5", "6", "7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23"],
         datasets: [
                 {
                         backgroundColor: 'rgba(33,150,243,1)',
                         borderWidth: 0,
-                        data: [0, 0, 0, 0, 0, 0, 160,270,320,360,400,463,431,400,360,320,270,160,0,0,0,0,0,0],
+                        data: [{{moi[0]}},{{moi[1]}},{{moi[2]}},{{moi[3]}},{{moi[4]}},{{moi[5]}},{{moi[6]}},{{moi[7]}},{{moi[8]}},{{moi[9]}},{{moi[10]}},{{moi[11]}},{{moi[12]}},{{moi[13]}},{{moi[14]}},{{moi[15]}},{{moi[16]}},{{moi[17]}},{{moi[18]}},{{moi[19]}},{{moi[20]}},{{moi[21]}},{{moi[22]}},{{moi[23]}}],
                 }
         ]
         },
@@ -87,12 +118,12 @@ var myChart = new Chart(ctx_moi, {
 var myChart = new Chart(ctx_tem, {
     type: 'bar',
     data: {
-        labels: ["1", "2", "3", "4", "5", "6", "7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24"],
+        labels: ["0","1", "2", "3", "4", "5", "6", "7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23"],
         datasets: [
                 {
                         backgroundColor: 'rgba(244,67,54,1)',
                         borderWidth: 0,
-                        data: [0, 0, 0, 0, 0, 0, 160,270,320,360,400,463,431,400,360,320,270,160,0,0,0,0,0,0],
+                        data: [{{tem[0]}}, {{tem[1]}}, {{tem[2]}}, {{tem[3]}}, {{tem[4]}}, {{tem[5]}},{{tem[6]}},{{tem[7]}},{{tem[8]}},{{tem[9]}},{{tem[10]}},{{tem[11]}},{{tem[12]}},{{tem[13]}},{{tem[14]}},{{tem[15]}},{{tem[16]}},{{tem[17]}},{{tem[18]}},{{tem[19]}},{{tem[20]}},{{tem[21]}},{{tem[22]}},{{tem[23]}}],
                 }
         ]
         },
@@ -119,12 +150,12 @@ var myChart = new Chart(ctx_tem, {
 var myChart = new Chart(ctx_fer, {
     type: 'bar',
     data: {
-        labels: ["1", "2", "3", "4", "5", "6", "7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24"],
+        labels: ["0","1", "2", "3", "4", "5", "6", "7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23"],
         datasets: [
                 {
                         backgroundColor: 'rgba(121,85,72,1)',
                         borderWidth: 0,
-                        data: [0, 0, 0, 0, 0, 0, 160,270,320,360,400,463,431,400,360,320,270,160,0,0,0,0,0,0],
+                        data: [{{fer[0]}},{{fer[1]}},{{fer[2]}},{{fer[3]}},{{fer[4]}},{{fer[5]}},{{fer[6]}},{{fer[7]}},{{fer[8]}},{{fer[9]}},{{fer[10]}},{{fer[11]}},{{fer[12]}},{{fer[13]}},{{fer[14]}},{{fer[15]}},{{fer[16]}},{{fer[17]}},{{fer[18]}},{{fer[19]}},{{fer[20]}},{{fer[21]}},{{fer[22]}},{{fer[23]}}],
                 }
         ]
         },
