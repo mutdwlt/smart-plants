@@ -68,7 +68,11 @@
 			<span style="font-size: 34px; display: inline" class="glyphicon glyphicon-lamp"></span> 
 			<h4 style="display: inline">Lighting:</h4>
 			<label class="switch" style="margin-bottom: 0; float: right">
-  				<input type="checkbox" checked id="myCheck">
+  				{% if status_led == 1 %}
+				<input type="checkbox" checked id="myCheck">
+				{% else %}
+				<input type="checkbox" id="myCheck">
+				{% endif %}
   				<div class="slider round"></div>
 			</label>
 		</div>
@@ -76,7 +80,11 @@
                         <span style="font-size: 34px; display: inline" class="glyphicon glyphicon-adjust"></span>
                         <h4 style="display: inline">Watering:</h4>
                         <label class="switch" style="margin-bottom: 0; float: right">
+                                {% if status_water == 1 %}
+                                <input type="checkbox" checked id="myCheck2">
+                                {% else %}
                                 <input type="checkbox" id="myCheck2">
+                                {% endif %}
                                 <div class="slider round"></div>
                         </label>
                 </div>
@@ -84,7 +92,11 @@
                         <span style="font-size: 34px; display: inline" class="glyphicon glyphicon-cd"></span>
                         <h4 style="display: inline">Fan:</h4>
                         <label class="switch" style="margin-bottom: 0; float: right">
+                                {% if status_fan == 1 %}
                                 <input type="checkbox" checked id="myCheck3">
+                                {% else %}
+                                <input type="checkbox" id="myCheck3">
+                                {% endif %}
                                 <div class="slider round"></div>
                         </label>
                 </div>

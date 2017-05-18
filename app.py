@@ -11,12 +11,38 @@ from threading import Thread
 import atexit
 
 GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
 
 mysql = MySQL()
 app = Flask(__name__)
 app.secret_key = "super secret key"
 app.debug = True
 
+GPIO_FAN = 17
+GPIO_LED = 22
+GPIO_WATER = 27
+status_led = 0
+status_fan = 0
+status_water = 0
+
+GPIO.setup(GPIO_FAN, GPIO.OUT)
+GPIO.output(GPIO_FAN,1)
+
+#get status of the port
+GPIO.setup(GPIO_FAN, GPIO.IN)
+GPIO.setup(GPIO_LED, GPIO.IN)
+GPIO.setup(GPIO_WATER, GPIO.IN)
+if GPIO.input(GPIO_FAN) == 1:
+	status_fan = 1
+if GPIO.input(GPIO_LED) == True:
+        status_led = 1
+if GPIO.input(GPIO_WATER) == True:
+        status_water = 1
+
+#setup the port as output
+GPIO.setup(GPIO_FAN, GPIO.OUT)
+GPIO.setup(GPIO_LED, GPIO.OUT)
+GPIO.setup(GPIO_WATER, GPIO.OUT)
 
 # MySQL configurations
 app.config['MYSQL_DATABASE_USER'] = 'root'
@@ -25,11 +51,10 @@ app.config['MYSQL_DATABASE_DB'] = 'miflora'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
 
-start_time = time.time()
-g_sun = [-1] * 5
-g_tem = [-1.0] * 5
-g_moi = [-1] * 5
-g_fer = [-1] * 5
+g_sun = [-1] * 6
+g_tem = [-1.0] * 6
+g_moi = [-1] * 6
+g_fer = [-1] * 6
 conn = mysql.connect()
 cursor = conn.cursor()
 sql = "SELECT * FROM plants_info WHERE id = 1"
@@ -40,15 +65,11 @@ for row in results:
 cursor.close()
 conn.close()
 
-def run_every_10_seconds():
-    print("Running periodic task!")
-    print "Elapsed time: " + str(time.time() - start_time)
 
 def run_schedule():
     while 1:
         schedule.run_pending()
         time.sleep(1)
-    schedule.shutdown() 
     
 def read_data_job():
 	address = str(mac_address)
@@ -62,31 +83,31 @@ def read_data_job():
 	try:
 		requester = GATTRequester(address)
                 #Read battery and firmware version attribute
-                data=requester.read_by_handle(0x0038)[0]
-                battery, version = unpack('<B6s',data)
+                #data=requester.read_by_handle(0x0038)[0]
+                #battery, version = unpack('<B6s',data)
                 #Enable real-time data reading
                 requester.write_by_handle(0x0033, str(bytearray([0xa0, 0x1f])))
                 #Read plant data
                 data=requester.read_by_handle(0x0035)[0]
                 temperature, sunlight, moisture, fertility = unpack('<hxIBHxxxxxx',data)
                 temperature=float(temperature/10);
-		min = (test_min % 10)/2
+		min = int(test_min/10)
 		g_sun[min] = sunlight
 		g_moi[min] = moisture
 		g_fer[min] = fertility
 		g_tem[min] = temperature
-		conn = mysql.connect()
-                cursor = conn.cursor()
-		print "store data %s" % time
-                sql = "INSERT INTO test_store_data (sun,moi,tem,fer,time) VALUES ('%d','%d','%f','%d','%s')" % (sunlight,moisture,temperature,fertility,time)
-                cursor.execute(sql)
-		conn.commit()
-                cursor.close()
-                conn.close()
+		#conn = mysql.connect()
+                #cursor = conn.cursor()
+		print "get data %s" % time
+                #sql = "INSERT INTO sensor_data (sunlight,moisture,temperature,fertility,time) VALUES ('%d','%d','%f','%d','%s')" % (sunlight,moisture,temperature,fertility,time)
+                #cursor.execute(sql)
+		#conn.commit()
+                #cursor.close()
+                #conn.close()
 	except:
-		print "can not read data at %s" % time
+		print "can not get data at %s" % time
 	finally:
-                if test_min%10 >=8:
+                if int(test_min/10) == 5:
                         sum_sun = 0
                         sum_tem = 0
                         sum_fer = 0
@@ -95,7 +116,7 @@ def read_data_job():
                         check_tem = 0
                         check_fer = 0
                         check_moi = 0
-                        for i in range(0,5):
+                        for i in range(0,6):
                                 if g_sun[i] != -1:
                                         sum_sun += g_sun[i]
                                         check_sun += 1
@@ -118,13 +139,13 @@ def read_data_job():
 				sum_fer = int(sum_fer/check_fer)
 			conn = mysql.connect()
                 	cursor = conn.cursor()
-			print "BACKUP 10 MINITUES"
-                	sql = "INSERT INTO test_store_data (sun,moi,tem,fer,time) VALUES ('%d','%d','%f','%d','%s')" % (sum_sun,sum_moi,sum_tem,sum_fer,time)
+			print "STORE DATA AFTER 1 HOUR at %s" % time
+                	sql = "INSERT INTO sensor_data (sunlight,moisture,temperature,fertility,time) VALUES ('%d','%d','%f','%d','%s')" % (sum_sun,sum_moi,sum_tem,sum_fer,time)
                 	cursor.execute(sql)
                 	conn.commit()
                 	cursor.close()
                 	conn.close()
-			for i in range(0,5):
+			for i in range(0,6):
 				g_sun[i] = -1
 				g_moi[i] = -1
 				g_tem[i] = -1.0
@@ -166,7 +187,7 @@ def main():
 			flash('Data updated successfully','success')
 		except:
 			flash('Could not update sensor value, please try again','danger')
-		return render_template('index.html')
+		return render_template('index.html',fan=status_fan,led=status_led,water=status_water)
 	else:
 		if not session.get('plants_name'):
 			conn = mysql.connect()
@@ -197,7 +218,7 @@ def main():
                        	session['moi']=data_moi
                       	session['fer']=data_fer
                       	session['time']=data_time
-		return render_template('index.html')
+		return render_template('index.html',fan=status_fan,led=status_led,water=status_water)
 
 @app.route('/showSignUp')
 def showSignUp():
@@ -496,7 +517,7 @@ def history():
 	return render_template('history.html',tem=tem,moi=moi,sun=sun,fer=fer,date=input_date,min_date=min_date,today=today)
 
 if __name__ == "__main__":
-	schedule.every(120).seconds.do(read_data_job)
+	schedule.every(600).seconds.do(read_data_job)
    	t = Thread(target=run_schedule)
-    	t.start()
+#    	t.start()
         app.run(host='0.0.0.0',use_reloader=False)
