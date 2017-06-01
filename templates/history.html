@@ -39,12 +39,114 @@
 <h3 style="text-align:center;">Daily report of your plants at {{date}}</h3>
 <h3>Sunlight:</h3>
 <canvas id="myChart_sun" width="700" height="250"></canvas>
+
+<div class="row" style="border-bottom: 1px solid #e5e5e5; padding-bottom: 20px;">
+<div class="col-sm-6" style="text-align: center">
+        <div class="row"><h4>Accumulation: </h4>
+	</div>
+	<div class="row">
+	<h4><span style="color:#ecda35">{{sum_sun}} mmol</span></h4>
+	</div>
+</div>
+<div class="col-sm-6" style="text-align: center">
+        <div class="row"><h4>Accumulated appropriate sunlight: </h4>
+	</div>
+	<div class="row">
+	<h4><span style="color:#ecda35">{{sun_b}}~{{sun_t}} mmol</span></h4>
+	</div>
+</div>
+</div>
+
 <h3>Moisture:</h3>
 <canvas id="myChart_moi" width="700" height="250"></canvas>
+
+<div class="row" style="border-bottom: 1px solid #e5e5e5; padding-bottom: 20px;">
+<div class="col-sm-4" style="text-align: center">
+        <div class="row">
+		<h4>Min value: </h4>
+	</div>
+	<div class="row">
+		<h4><span style="color:#2196f3">{{min_moi}} %</span></h4>
+	</div>
+</div>
+<div class="col-sm-4" style="text-align: center">
+	<div class="row">
+		<h4>Max value: </h4>
+	</div>
+	<div class="row">
+		<h4><span style="color:#2196f3">{{max_moi}} %</span></h4>
+	</div>
+</div>
+<div class="col-sm-4" style="text-align: center">
+        <div class="row">
+		<h4>Value range: </h4>
+	</div>
+	<div class="row">
+		<h4><span style="color:#2196f3">{{moi_b}}~{{moi_t}} %</span></h4>
+	</div>
+</div>
+</div>
+
 <h3>Temperature:</h3>
 <canvas id="myChart_tem" width="700" height="250"></canvas>
+
+<div class="row" style="border-bottom: 1px solid #e5e5e5; padding-bottom: 20px;">
+<div class="col-sm-4" style="text-align: center">
+        <div class="row">
+		<h4>Min value: </h4>
+	</div>
+	<div class="row">
+		<h4><span style="color:#f44336">{{min_tem}} &#8451</span></h4>
+	</div>
+</div>
+<div class="col-sm-4" style="text-align: center">
+        <div class="row">
+		<h4>Max value: </h4>
+	</div>
+	<div class="row">
+		<h4><span style="color:#f44336">{{max_tem}} &#8451</span></h4>
+	</div>
+</div>
+<div class="col-sm-4" style="text-align: center">
+        <div class="row">
+		<h4>Value range: </h4>
+	</div>
+	<div class="row">
+		<h4><span style="color:#f44336">{{tem_b}}~{{tem_t}} &#8451</span></h4>
+	</div>
+</div>
+</div>
+
 <h3>Fertility:</h3>
 <canvas id="myChart_fer" width="700" height="250"></canvas>
+
+<div class="row">
+<div class="col-sm-4" style="text-align: center">
+        <div class="row">
+		<h4>Min value: </h4>
+	</div>
+	<div class="row">
+		<h4><span style="color:#795548">{{min_fer}} us/cm</span></h4>
+	</div>
+</div>
+<div class="col-sm-4" style="text-align: center">
+        <div class="row">
+		<h4>Max value: </h4>
+	</div>
+	<div class="row">
+		<h4><span style="color:#795548">{{max_fer}} us/cm</span></h4>
+	</div>
+</div>
+<div class="col-sm-4" style="text-align: center">
+        <div class="row">
+		<h4>Value range: </h4>
+	</div>
+	<div class="row">
+		<h4><span style="color:#795548">{{fer_b}}~{{fer_t}} us/cm</span></h4>
+	</div>
+</div>
+</div>
+
 
 <script>
 var ctx_sun = document.getElementById("myChart_sun");
@@ -71,7 +173,7 @@ var myChart = new Chart(ctx_sun, {
                 },
 		scaleLabel: {
       		  display: true,
-     		  labelString: 'nmol'
+     		  labelString: 'mmol'
       		}
             }],
 	    xAxes: [{

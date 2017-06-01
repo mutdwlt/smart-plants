@@ -1,48 +1,19 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from flask import Flask, redirect, url_for, flash, session, render_template, json, request
 from flask.ext.mysql import MySQL
 from gattlib import GATTRequester, GATTResponse
-import RPi.GPIO as GPIO
 import datetime
 from struct import *
 import schedule
 import time
 from threading import Thread
-import atexit
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-
-mysql = MySQL()
 app = Flask(__name__)
 app.secret_key = "super secret key"
 app.debug = True
+mysql = MySQL()
 
-GPIO_FAN = 17
-GPIO_LED = 22
-GPIO_WATER = 27
-status_led = 0
-status_fan = 0
-status_water = 0
-
-GPIO.setup(GPIO_FAN, GPIO.OUT)
-GPIO.output(GPIO_FAN,1)
-
-#get status of the port
-GPIO.setup(GPIO_FAN, GPIO.IN)
-GPIO.setup(GPIO_LED, GPIO.IN)
-GPIO.setup(GPIO_WATER, GPIO.IN)
-if GPIO.input(GPIO_FAN) == 1:
-	status_fan = 1
-if GPIO.input(GPIO_LED) == True:
-        status_led = 1
-if GPIO.input(GPIO_WATER) == True:
-        status_water = 1
-
-#setup the port as output
-GPIO.setup(GPIO_FAN, GPIO.OUT)
-GPIO.setup(GPIO_LED, GPIO.OUT)
-GPIO.setup(GPIO_WATER, GPIO.OUT)
 
 # MySQL configurations
 app.config['MYSQL_DATABASE_USER'] = 'root'
@@ -55,16 +26,19 @@ g_sun = [-1] * 6
 g_tem = [-1.0] * 6
 g_moi = [-1] * 6
 g_fer = [-1] * 6
-conn = mysql.connect()
-cursor = conn.cursor()
-sql = "SELECT * FROM plants_info WHERE id = 1"
-cursor.execute(sql)
-results = cursor.fetchall()
-for row in results:
- 	mac_address = row[0]
-cursor.close()
-conn.close()
 
+with app.app_context():
+	conn = mysql.connect()
+	cursor = conn.cursor()
+	sql = "SELECT * FROM plants_info WHERE id = 1"
+	cursor.execute(sql)
+	results = cursor.fetchall()
+	for row in results:
+ 		mac_address_sleep = row[0]
+	cursor.close()
+	conn.close()
+
+mac_address = str(mac_address_sleep)
 
 def run_schedule():
     while 1:
@@ -72,7 +46,7 @@ def run_schedule():
         time.sleep(1)
     
 def read_data_job():
-	address = str(mac_address)
+	address = mac_address
 	global g_sun
 	global g_moi
 	global g_tem
@@ -83,27 +57,27 @@ def read_data_job():
 	try:
 		requester = GATTRequester(address)
                 #Read battery and firmware version attribute
-                #data=requester.read_by_handle(0x0038)[0]
-                #battery, version = unpack('<B6s',data)
+                data=requester.read_by_handle(0x0038)[0]
+                battery, version = unpack('<B6s',data)
                 #Enable real-time data reading
                 requester.write_by_handle(0x0033, str(bytearray([0xa0, 0x1f])))
                 #Read plant data
                 data=requester.read_by_handle(0x0035)[0]
                 temperature, sunlight, moisture, fertility = unpack('<hxIBHxxxxxx',data)
-                temperature=float(temperature/10);
+                temperature=float(temperature/10)
 		min = int(test_min/10)
-		g_sun[min] = sunlight
-		g_moi[min] = moisture
-		g_fer[min] = fertility
-		g_tem[min] = temperature
+		#g_sun[min] = sunlight
+		#g_moi[min] = moisture
+		#g_fer[min] = fertility
+		#g_tem[min] = temperature
 		#conn = mysql.connect()
-                #cursor = conn.cursor()
-		print "get data %s" % time
-                #sql = "INSERT INTO sensor_data (sunlight,moisture,temperature,fertility,time) VALUES ('%d','%d','%f','%d','%s')" % (sunlight,moisture,temperature,fertility,time)
-                #cursor.execute(sql)
-		#conn.commit()
-                #cursor.close()
+               	#cursor = conn.cursor()
+               	#sql = "INSERT INTO sensor_data_test (sunlight,moisture,temperature,fertility,time) VALUES ('%d','%d','%f','%d','%s')" % (sunlight,moisture,temperature,fertility,time)
+             	#cursor.execute(sql)
+              	#conn.commit()
+               	#cursor.close()
                 #conn.close()
+		print "get data at %s" % time
 	except:
 		print "can not get data at %s" % time
 	finally:
@@ -154,18 +128,51 @@ def read_data_job():
 
 @app.route('/',methods=['GET', 'POST'])
 def main():
+	conn = mysql.connect()
+      	cursor = conn.cursor()
+     	sql = "SELECT * FROM plants_info WHERE id = 1"
+     	cursor.execute(sql)
+     	results = cursor.fetchall()
+     	for row in results:
+		plants_name = row[1]
+             	sun_b = row[2]
+		sun_t = row[3]
+		moi_b = row[4]
+		moi_t = row[5]
+		tem_b = row[6]
+		tem_t = row[7]
+		fer_b = row[8]
+		fer_t = row[9]
+	sql = "SELECT * FROM sensor_data_hour WHERE id = 2"
+	cursor.execute(sql)
+        results = cursor.fetchall()
+        for row in results:
+		status_led = row[7]
+		status_water = row[8]
+		status_fan = row[9]
+	cursor.close()
+        conn.close()
+	sun_b = int(sun_b*10.76/(0.71*24))
+	sun_t = int(sun_t*10.76/(0.71*2))
+	status_sun = 1
+	status_moi = 1
+	status_tem = 1
+	status_fer = 1
 	if request.method == 'POST':
 		if not session.get('mac'):
-                	conn = mysql.connect()
+			conn = mysql.connect()
                 	cursor = conn.cursor()
                 	sql = "SELECT * FROM plants_info WHERE id = 1"
                 	cursor.execute(sql)
                 	results = cursor.fetchall()
                 	for row in results:
-                        	session['mac'] = row[0]
+                        	address_x = row[0]
                 	cursor.close()
                 	conn.close()
-		address = str(session['mac'])
+			address = str(address_x)
+			session['mac'] = address_x
+		else:
+			address = str(session['mac'])
 		try:
 			requester = GATTRequester(address)
 			#Read battery and firmware version attribute
@@ -176,49 +183,92 @@ def main():
 			#Read plant data
 			data=requester.read_by_handle(0x0035)[0]
 			temperature, sunlight, moisture, fertility = unpack('<hxIBHxxxxxx',data)
-			temperature=float(temperature/10);
-			session['tem']=temperature
-			session['sun']=sunlight
-			session['moi']=moisture
-			session['fer']=fertility
-			session['time']=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-			session['battery']=battery
-			session['firmware']=version
+			temperature=float(temperature/10)
+			data_time=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+			conn = mysql.connect()
+                	cursor = conn.cursor()
+                	sql = "UPDATE plants_info SET baterry = %d, firmware = '%s' WHERE id = 1" % (battery,version)
+                	cursor.execute(sql)
+			conn.commit()
+			sql = "UPDATE sensor_data_hour SET sunlight = %d, moisture = %d,temperature=%0.1f,fertility=%d,time='%s' WHERE id = 2" % (sunlight,moisture,temperature,fertility,data_time)
+                        cursor.execute(sql)
+                        conn.commit()
+			cursor.close()
+			conn.close()
 			flash('Data updated successfully','success')
 		except:
 			flash('Could not update sensor value, please try again','danger')
-		return render_template('index.html',fan=status_fan,led=status_led,water=status_water)
-	else:
-		if not session.get('plants_name'):
 			conn = mysql.connect()
-                        cursor = conn.cursor()
-                        sql = "SELECT * FROM plants_info WHERE id = 1"
-                        cursor.execute(sql)
-                        results = cursor.fetchall()
-                        for row in results:
-                                session['plants_name'] = row[1]
-			cursor.close()
-			conn.close()
-		if not session.get('time'):
-			conn = mysql.connect()
-                	cursor = conn.cursor()
-                	sql = "SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1"
+	                cursor = conn.cursor()
+        	        sql = "SELECT * FROM sensor_data_hour WHERE id = 2"
                 	cursor.execute(sql)
                 	results = cursor.fetchall()
                 	for row in results:
-                    		data_sun = row[1]
-                       		data_moi = row[2]
-                      		data_fer = row[4]
-                     		data_tem = row[3]
-                      		data_time = row[5]
-			cursor.close()
-			conn.close()
-                      	session['tem']=data_tem
-                      	session['sun']=data_sun
-                       	session['moi']=data_moi
-                      	session['fer']=data_fer
-                      	session['time']=data_time
-		return render_template('index.html',fan=status_fan,led=status_led,water=status_water)
+                        	sunlight = row[1]
+                        	moisture = row[2]
+                        	fertility = row[4]
+                        	temperature = row[3]
+                        	data_time = row[5]
+                	cursor.close()
+                	conn.close()
+		if sunlight < sun_b:
+			status_sun = 0
+		elif sunlight > sun_t:
+			status_sun = 2
+                if moisture < moi_b:
+                        status_moi = 0
+                elif moisture > moi_t:
+                        status_moi = 2
+                if temperature < tem_b:
+                        status_tem = 0
+                elif temperature > tem_t:
+                        status_tem = 2
+                if fertility < fer_b:
+                        status_fer = 0
+                elif fertility > fer_t:
+                        status_fer = 2
+		string_time = str(data_time)
+		string_time = string_time[11:-6]
+		check_hour = int(string_time)
+		if check_hour >= 18 or check_hour <=5:
+			status_sun = 3
+		return render_template('index.html',status_fan=status_fan,status_led=status_led,status_water=status_water,status_sun=status_sun,status_moi=status_moi,status_tem=status_tem,status_fer=status_fer,sun=sunlight,moi=moisture,tem=temperature,fer=fertility,time=data_time,plants_name=plants_name,sun_b=sun_b,sun_t=sun_t,moi_b=moi_b,moi_t=moi_t,tem_b=tem_b,tem_t=tem_t,fer_b=fer_b,fer_t=fer_t)
+	else:
+		conn = mysql.connect()
+               	cursor = conn.cursor()
+                sql = "SELECT * FROM sensor_data_hour WHERE id = 2"
+                cursor.execute(sql)
+                results = cursor.fetchall()
+                for row in results:
+                    	data_sun = row[1]
+                       	data_moi = row[2]
+                      	data_fer = row[4]
+                     	data_tem = row[3]
+                      	data_time = row[5]
+		cursor.close()
+		conn.close()
+		if data_sun < sun_b:
+                        status_sun = 0
+                elif data_sun > sun_t:
+                        status_sun = 2
+                if data_moi < moi_b:
+                        status_moi = 0
+                elif data_moi > moi_t:
+                        status_moi = 2
+                if data_tem < tem_b:
+                        status_tem = 0
+                elif data_tem > tem_t:
+                        status_tem = 2
+                if data_fer < fer_b:
+                        status_fer = 0
+                elif data_fer > fer_t:
+                        status_fer = 2
+                string_time = str(data_time)
+                string_time = string_time[11:-6]
+                check_hour = int(string_time)
+                if check_hour >= 18 or check_hour <=5:
+                        status_sun = 3
+		return render_template('index.html',status_fan=status_fan,status_led=status_led,status_water=status_water,status_sun=status_sun,status_moi=status_moi,status_tem=status_tem,status_fer=status_fer,plants_name=plants_name,sun=data_sun,moi=data_moi,tem=data_tem,fer=data_fer,time=data_time,sun_b=sun_b,sun_t=sun_t,moi_b=moi_b,moi_t=moi_t,tem_b=tem_b,tem_t=tem_t,fer_b=fer_b,fer_t=fer_t)
 
 @app.route('/showSignUp')
 def showSignUp():
@@ -247,14 +297,16 @@ def plants():
 		tem_top = row[7]
 		fer_bottom = row[8]
 		fer_top = row[9]
+		battery = row[10]
+		firmware = row[11]
         cursor.close()
         conn.close()	
-	return render_template('plants.html',mac_address=mac_address,plants_name=plants_name,sun_b=sun_bottom,sun_t=sun_top,moi_b=moi_bottom,moi_t=moi_top,tem_b=tem_bottom,tem_t=tem_top,fer_b=fer_bottom,fer_t=fer_top)
+	return render_template('plants.html',mac_address=mac_address,plants_name=plants_name,sun_b=sun_bottom,sun_t=sun_top,moi_b=moi_bottom,moi_t=moi_top,tem_b=tem_bottom,tem_t=tem_top,fer_b=fer_bottom,fer_t=fer_top,battery=battery,firmware = firmware)
 
 @app.route('/editSensor',methods=['GET', 'POST'])
 def editSensor():
 	global mac_address
-	if not session.get('logged_in'):
+	if not session.get('logged_in') or session['user_role'] ==0:
                 return redirect(url_for('main'))
 	if request.method == 'POST':
 		new_mac_address = request.form['mac_address']
@@ -283,7 +335,7 @@ def editSensor():
 
 @app.route('/editPlants',methods=['GET', 'POST'])
 def editPlants():
-        if not session.get('logged_in'):
+        if not session.get('logged_in') or session['user_role'] == 0:
                 return redirect(url_for('main'))
         if request.method == 'POST':
 		n_plants_name = request.form['plants_name']
@@ -303,7 +355,6 @@ def editPlants():
                 cursor.close()
                 conn.close()
                 flash('Your plants has been updated successfully','success')
-		session['plants_name'] = n_plants_name
                 return redirect(url_for('plants'))
         else:
                 conn = mysql.connect()
@@ -374,6 +425,16 @@ def showSignIn():
 	else:
 		return redirect(url_for('main'))
 
+@app.route('/log')
+def log():
+	if not session.get('logged_in') or session['user_role'] == 0:
+                return redirect(url_for('main'))
+        else:
+		f =open("device_log.txt","r")
+		lines = f.readlines()
+		f.close()
+                return render_template('log.html',lines = lines)
+
 @app.route('/signUp',methods=['POST','GET'])
 def signUp():
     try:
@@ -403,7 +464,7 @@ def signUp():
 	    return redirect(url_for('showSignUp'))
 
     except Exception as e:
-        flash(str(e))
+        flash(str(e),'danger')
 	return redirect(url_for('showSignUp'))
 
 @app.route('/signIn',methods=['POST','GET'])
@@ -428,12 +489,14 @@ def signIn():
 		u_name = row[1]
 		u_username = row[2]
 		u_password = row[3]
+		u_role = row[4]
 	    cursor.close()
             conn.close()
 	    if _password == u_password:
 		session['logged_in'] = True
 		session['name'] = u_name
 		session['user_id'] = u_id
+		session['user_role'] = u_role	
             	flash('You were logged in','success')
               	return redirect(url_for('main'))
 	    else:
@@ -449,6 +512,7 @@ def signIn():
 @app.route("/logout")
 def logout():
     session['logged_in'] = False
+    session['user_role'] = 0
     flash('You were logged out','success')
     return redirect(url_for('main'))
 
@@ -485,6 +549,22 @@ def history():
 		return redirect(url_for('showSignIn'))
 	today = datetime.datetime.now().strftime("%Y-%m-%d")
         input_date = today
+	conn = mysql.connect()
+        cursor = conn.cursor()
+        sql = 'SELECT * FROM plants_info WHERE id = 1'
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        for row in results:
+                sun_b = row[2]
+                sun_t = row[3]
+                moi_b = row[4]
+                moi_t = row[5]
+                tem_b = row[6]
+                tem_t = row[7]
+                fer_b = row[8]
+                fer_t = row[9]
+        cursor.close()
+        conn.close()
 	if request.method == 'POST':
 		report_type = request.form['select1']
 		if report_type == '2':
@@ -514,10 +594,32 @@ def history():
 		fer[row[0]] = row[4]
 	cursor.close()
 	conn.close()
-	return render_template('history.html',tem=tem,moi=moi,sun=sun,fer=fer,date=input_date,min_date=min_date,today=today)
+	sum_sun = 0
+	min_moi = 0
+	max_moi = 0
+	min_tem = 0
+	max_tem = 0
+	min_fer = 0
+	max_fer = 0
+	for i in range(0,24):
+		sun[i] = int(sun[i]*0.71/10.76)
+		sum_sun += sun[i] 
+		if moi[i] > max_moi:
+			max_moi=moi[i]
+		if moi[i] < min_moi:
+                        min_moi=moi[i]
+		if tem[i] > max_tem:
+                        max_tem=tem[i]
+		if tem[i] < min_tem:
+                        min_tem=tem[i]
+		if fer[i] > max_fer:
+                        max_fer=fer[i]
+		if fer[i] > min_fer:
+                        min_fer=fer[i]
+	return render_template('history.html',tem=tem,moi=moi,sun=sun,fer=fer,date=input_date,min_date=min_date,today=today,sun_b=sun_b,sun_t=sun_t,moi_b=moi_b,moi_t=moi_t,tem_b=tem_b,tem_t=tem_t,fer_b=fer_b,fer_t=fer_t,sum_sun=sum_sun,max_moi=max_moi,min_moi=min_moi,max_tem=max_tem,min_tem=min_tem,max_fer=max_fer,min_fer=min_fer)
 
 if __name__ == "__main__":
-	schedule.every(600).seconds.do(read_data_job)
-   	t = Thread(target=run_schedule)
+#	schedule.every(60).seconds.do(read_data_job)
+#   	t = Thread(target=run_schedule)
 #    	t.start()
         app.run(host='0.0.0.0',use_reloader=False)

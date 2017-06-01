@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layout.html" %}c
 
 {% block stylesheet %}
 {% endblock %}
@@ -12,9 +12,11 @@
 		<div class="col-xs-11">
 		<h3>Miflora Sensor Information:</h3>
 		</div>
+		{% if session.user_role == 1 %}
 		<div class="col-xs-1">
 			<a href="editSensor">Edit</a>
 		</div>		
+		{% endif %}
             <div class="col-sm-6">
 		<div class="row">
 			<div class="col-xs-6"><h4>MAC address:</h4></div>
@@ -22,13 +24,13 @@
 		</div>
          	<div class="row">
                         <div class="col-xs-6"><h4>Battery:</h4></div>
-                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{session.battery}}%</h4></div>
+                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{battery}}%</h4></div>
                 </div>    
 	    </div>
 	    <div class="col-sm-6">
                 <div class="row">
                         <div class="col-xs-6"><h4>Firmware Version:</h4></div>
-                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{session.firmware}}</h4></div>
+                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{firmware}}</h4></div>
                 </div>
             </div>
         </div>
@@ -36,29 +38,31 @@
 		<div class="col-xs-11">
 			<h3>Plants information:</h3>
 		</div>
+		{% if session.user_role == 1 %}
 		<div class="col-xs-1">
                         <a href="editPlants">Edit</a>
                 </div>
+		{% endif %}
             <div class="col-sm-6">
                 <div class="row">
                         <div class="col-xs-6"><h4>Plants name:</h4></div>
                         <div class="col-xs-6"><h4 style="font-weight: 200;">{{plants_name}}</h4></div>
                 </div>
 		<div class="row">
-                        <div class="col-xs-6"><h4>Lowest sunlight level:</h4></div>
-                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{sun_b}}</h4></div>
+                        <div class="col-xs-6"><h4>Lowest sunlight accumulation per day:</h4></div>
+                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{sun_b}} mmol</h4></div>
                 </div>
 		<div class="row">
-                        <div class="col-xs-6"><h4>Highest sunlight level:</h4></div>
-                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{sun_t}}</h4></div>
+                        <div class="col-xs-6"><h4>Highest sunlight accumulation per day:</h4></div>
+                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{sun_t}} mmol</h4></div>
                 </div>
 		<div class="row">
                         <div class="col-xs-6"><h4>Lowest temperature level:</h4></div>
-                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{tem_b}}</h4></div>
+                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{tem_b}} &#8451</h4></div>
                 </div>
 		<div class="row">
                         <div class="col-xs-6"><h4>Highest temperature level:</h4></div>
-                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{tem_t}}</h4></div>
+                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{tem_t}} &#8451</h4></div>
                 </div>
             </div>
             <div class="col-sm-6">
@@ -68,19 +72,19 @@
                 </div>
 		<div class="row">
                         <div class="col-xs-6"><h4>Lowest moisture level:</h4></div>
-                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{moi_b}}</h4></div>
+                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{moi_b}} %</h4></div>
                 </div>
 		<div class="row">
                         <div class="col-xs-6"><h4>Highest moisture level:</h4></div>
-                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{moi_t}}</h4></div>
+                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{moi_t}} %</h4></div>
                 </div>
 		<div class="row">
                         <div class="col-xs-6"><h4>Lowest fertility level:</h4></div>
-                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{fer_b}}</h4></div>
+                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{fer_b}} us/cm</h4></div>
                 </div>
 		<div class="row">
                         <div class="col-xs-6"><h4>Highest fertility level:</h4></div>
-                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{fer_t}}</h4></div>
+                        <div class="col-xs-6"><h4 style="font-weight: 200;">{{fer_t}} us/cm</h4></div>
                 </div>
             </div>
         </div>

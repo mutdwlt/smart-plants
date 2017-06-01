@@ -13,12 +13,14 @@
 
 {% block body %} 
         <div class="jumbotron" style="background-image: url('https://d3atagt0rnqk7k.cloudfront.net/wp-content/uploads/2016/10/20114756/how-to-train-cannabis-plant-header-1280x800.jpg'); background-size: cover">
-            <h1 style="color: white;">{{session.plants_name}}</h1>
+            <h1 style="color: white;">{{plants_name}}</h1>
             <p class="lead"></p>
             <p><a class="btn btn-lg btn-success" href="history" role="button"> View data report</a>
             </p>
         </div>	
 	<div class="row">
+		{% if session.logged_in and session.user_role == 1 %}
+		
 		<div class="col-sm-8">
 			<div id="clock" class="light">
 				<div class="display">
@@ -33,37 +35,126 @@
   				<button type="submit" style="font-size:26px; padding: 12px; display: block; color: white;background-color:#E53935;" name="action" class="btn btn-default" id="update-btn">Update data</button>
 			</form>
 		</div>
+		{% else %}
+		<div class="col-sm-12">
+                        <div id="clock" class="light">
+                                <div class="display">
+                                        <div class="ampm"></div>
+                                        <div class="digits"></div>
+                                </div>
+                        </div>
+                </div>
+		
+		{% endif %}
 	</div>
-	{{string_test}}
-	<h3 style="text-align: center">Current status of your plants at {{session.time}}</h3>
+	<h3 style="text-align: center">Current status of your plants at {{time}}</h3>
 
         <div class="row marketing" style="margin:0">
             <div class="col-sm-5">
 		<div class="row">
-			<h4 style="display:inline"><span class="glyphicon glyphicon-flash"></span> Sunlight:</h4>
-			<span style="float:right"><h2 style="display:inline;color:#F44336;">{{session.sun}}</h2><h3 style="display: inline">lux</h3></span>
+			<h4 style="display:inline"><span style="display: none" class="glyphicon glyphicon-flash"></span> Sunlight:</h4>
+			<span style="float:right"><h2 style="display:inline;color:#F44336;">{{sun}}</h2><h3 style="display: inline">lux</h3>
+			{% if status_sun == 1 %}
+			<h3 style="display: inline; margin-left: 10px; color: #4CAF50">GOOD</h3>
+			{% elif status_sun == 0 %}
+			<h3 style="display: inline; margin-left: 10px; color: #F44336">LOW</h3>
+			{% elif status_sun == 2 %}
+			<h3 style="display: inline; margin-left: 10px; color: #F44336">HIGH</h3>
+			{% else %}
+			<h3 style="display: inline; margin-left: 10px; color: #CDDC39">SLEEP</h3>
+			{% endif %}
+			</span>
 		</div> 
-                <div class="row">
-			<h4 style="display:inline"><span class="glyphicon glyphicon-cloud"></span> Temperature:</h4>   
-                     <span style="float:right"><h2 style="display:inline;color: #F44336;">{{session.tem}}</h2><h3 style="display: inline">&#8451</h3></span>
-                </div>
+		<div class="row" style="padding-bottom: 20px; text-align: center">
+			{% if status_sun == 1 %}
+			<p>A suitable light level!</p>
+                        {% elif status_sun == 0 %}
+			<p>Light level is low, should be  at least more than {{sun_b}}</p>
+                        {% elif status_sun == 2 %}
+			<p>High light level, should be down to below {{sun_t}}</p>
+                        {% else %}
+			<p>With night coming on, take a rest, good night, see you tomorrow ~</p>
+			{% endif %}
+		</div>
             </div>
  
             <div class="col-sm-5 col-sm-offset-2">
                 <div class="row">
-			<h4 style="display:inline"><span class="glyphicon glyphicon-tint"></span> Soil moisture:</h4>
-                        <span style="float:right"><h2 style="display:inline;color:#F44336;">{{session.moi}}</h2><h3 style="display: inline">%</h3></span>
+			<h4 style="display:inline"><span style="display: none"  class="glyphicon glyphicon-tint"></span> Soil moisture:</h4>
+                        <span style="float:right"><h2 style="display:inline;color:#F44336;">{{moi}}</h2><h3 style="display: inline">%</h3>
+                        {% if status_moi == 1 %}
+                        <h3 style="display: inline; margin-left: 10px; color: #4CAF50">GOOD</h3>
+                        {% elif status_moi == 0 %}
+                        <h3 style="display: inline; margin-left: 10px; color: #F44336">LOW</h3>
+                        {% else %}
+                        <h3 style="display: inline; margin-left: 10px; color: #F44336">HIGH</h3>
+                        {% endif %}
+                        </span>
                 </div>
-                <div class="row">
-			<h4 style="display:inline"><span class="glyphicon glyphicon-grain"></span> Fertility:</h4>
-                        <span style="float:right"><h2 style="display:inline;color:#F44336;">{{session.fer}}</h2><h3 style="display: inline">us/cm</h3></span>
+		<div class="row" style="padding-bottom: 20px; text-align: center">
+                        {% if status_moi == 1 %}
+                        <p>A suitable soil moisture level!</p>
+                        {% elif status_moi == 0 %}
+                        <p>Very low soil moisture level, should be at least {{moi_b}}%</p>
+                        {% else %}
+                        <p>Too much water, should be down to below {{moi_t}}%</p>
+                        {% endif %}
                 </div>
             </div>
         </div>
 
-	
+<div class="row marketing" style="margin:0">
+<div class="col-sm-5">
+		<div class="row">
+                        <h4 style="display:inline"><span style="display: none"  class="glyphicon glyphicon-cloud"></span> Temperature:</h4>
+                     <span style="float:right"><h2 style="display:inline;color: #F44336;">{{tem}}</h2><h3 style="display: inline">&#8451</h3>
+                        {% if status_tem == 1 %}
+                        <h3 style="display: inline; margin-left: 10px; color: #4CAF50">GOOD</h3>
+                        {% elif status_tem == 0 %}
+                        <h3 style="display: inline; margin-left: 10px; color: #F44336">LOW</h3>
+                        {% else %}
+                        <h3 style="display: inline; margin-left: 10px; color: #F44336">HIGH</h3>
+                        {% endif %}
+                        </span>
+
+                </div>
+		<div class="row" style=" text-align: center">
+                        {% if status_tem == 1 %}
+                        <p>A suitable temperature, please keep it!</p>
+                        {% elif status_tem == 0 %}
+                        <p>Temperature is too low, should be more than {{tem_b}}&#8451</p>
+                        {% else %}
+                        <p>Temperature is too high, should be down to below {{tem_t}}&#8451</p>
+                        {% endif %}
+                </div>
+</div>
+<div class="col-sm-5 col-sm-offset-2">
+		<div class="row">
+                        <h4 style="display:inline"><span style="display: none"  class="glyphicon glyphicon-grain"></span> Fertility:</h4>
+                        <span style="float:right"><h2 style="display:inline;color:#F44336;">{{fer}}</h2><h3 style="display: inline">us/cm</h3>
+                        {% if status_fer == 1 %}
+                        <h3 style="display: inline; margin-left: 10px; color: #4CAF50">GOOD</h3>
+                        {% elif status_fer == 0 %}
+                        <h3 style="display: inline; margin-left: 10px; color: #F44336">LOW</h3>
+                        {% else %}
+                        <h3 style="display: inline; margin-left: 10px; color: #F44336">HIGH</h3>
+                        {% endif %}
+                        </span>
+                </div>
+		<div class="row" style=" text-align: center">
+                        {% if status_fer == 1 %}
+                        <p>Fertility is suitable, please keep it!</p>
+                        {% elif status_fer == 0 %}
+                        <p>Fertility is too low, please water me with liquid fertilizer to reach a level about {{fer_b}} us/cm</p>
+                        {% else %}
+                        <p>Fertility is too high, should be down to below {{fer_t}} us/cm</p>
+                        {% endif %}
+                </div>
+</div>
+</div>	
  
 	<div class="row" style="border-top: 1px solid #e5e5e5; padding-top: 30px; padding-bottom: 30px; margin: 20px 0 0 0;">
+		<h3 style="text-align: center;margin-top: 0; margin-bottom: 20px;">Current status of your device</h3>
 		<div class="col-sm-4" style="border-right:1px solid #e5e5e5">
 			<span style="font-size: 34px; display: inline" class="glyphicon glyphicon-lamp"></span> 
 			<h4 style="display: inline">Lighting:</h4>

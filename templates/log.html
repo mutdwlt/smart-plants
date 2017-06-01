@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block stylesheet %}
+{% endblock %}
+{% block body %}
+<h3>System Log</h3>
+{% for line in lines %}
+<p>{{line}}</p>
+{% endfor %}
+
+{% endblock %}
