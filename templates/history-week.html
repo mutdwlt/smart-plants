@@ -1,0 +1,186 @@
+{% extends "layout.html" %}
+{% block stylesheet %}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+{% endblock %}
+{% block body %}
+<form action="history" class="row" style="margin-left:0; margin-right:0;border-bottom: 1px solid #e5e5e5;padding-bottom: 30px;" method="POST">
+	<div class="form-group col-sm-4">
+		<div class="row" style="margin:0">
+			<label for="sel1">Choose report type:</label>
+  		</div>
+		<div class="row" style="margin:0">
+		<select class="form-control" id="select1" name="select1" onchange="this.form.submit();">
+    			<option value="1">Daily report</option>
+    			<option value="2" selected="selected">Weekly report</option>
+  		</select>
+		</div>
+	</div>
+	<div class="form-group col-sm-4">
+                <div class="row" style="margin:0">
+                <label for="date">Choose date:</label>
+                </div>
+                <div class="row" style="margin:0">
+                <input type="date" class="form-control" id="date1" name="date1" value="{{date}}" min="{{min_date}}" max="{{today}}">
+                </div>
+        </div>
+        <div class="form-group col-sm-4">
+                <div class="row" style="margin:0">
+                <label for="date" style="color:white">.</label>
+                </div>
+                <div class="row" style="margin:0">
+                <button type="submit" name="action" class=" btn btn-default">Show data</button>
+                </div>
+        </div>
+</form>
+<h3 style="text-align:center;">Weekly report of your plants from {{monday}} to {{sunday}}</h3>
+<h3>Sunlight:</h3>
+<canvas id="myChart_sun" width="700" height="250"></canvas>
+
+<h3>Moisture:</h3>
+<canvas id="myChart_moi" width="700" height="250"></canvas>
+
+<h3>Temperature:</h3>
+<canvas id="myChart_tem" width="700" height="250"></canvas>
+
+<h3>Fertility:</h3>
+<canvas id="myChart_fer" width="700" height="250"></canvas>
+
+<script>
+var ctx_sun = document.getElementById("myChart_sun");
+var ctx_moi = document.getElementById("myChart_moi");
+var ctx_tem = document.getElementById("myChart_tem");
+var ctx_fer = document.getElementById("myChart_fer");
+var myChart = new Chart(ctx_sun, {
+    type: 'bar',
+    data: {
+	labels: ["Mon","Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    	datasets: [
+        	{
+			backgroundColor: 'rgba(255,235,59,1)',
+            		borderWidth: 0,
+            		data: [{{sun[0]}},{{sun[1]}},{{sun[2]}},{{sun[3]}},{{sun[4]}},{{sun[5]}},{{sun[6]}}],
+        	}
+    	]
+    	},
+    options: {
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                },
+		scaleLabel: {
+      		  display: true,
+     		  labelString: 'mmol'
+      		}
+            }],
+	    xAxes: [{
+            }]
+        },
+	legend: {
+            display: false
+        }
+    }
+});
+
+var myChart = new Chart(ctx_moi, {
+    type: 'bar',
+    data: {
+	labels: ["Mon","Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        datasets: [
+                {
+                        backgroundColor: 'rgba(33,150,243,1)',
+                        borderWidth: 0,
+			data: [{{moi[0]}},{{moi[1]}},{{moi[2]}},{{moi[3]}},{{moi[4]}},{{moi[5]}},{{moi[6]}}],
+                }
+        ]
+        },
+    options: {
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                },
+                scaleLabel: {
+                  display: true,
+                  labelString: '%'
+                }
+            }],
+            xAxes: [{
+            }]
+        },
+        legend: {
+            display: false
+        }
+    }
+});
+
+var myChart = new Chart(ctx_tem, {
+    type: 'bar',
+    data: {
+	labels: ["Mon","Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        datasets: [
+                {
+                        backgroundColor: 'rgba(244,67,54,1)',
+                        borderWidth: 0,
+			data: [{{tem[0]}},{{tem[1]}},{{tem[2]}},{{tem[3]}},{{tem[4]}},{{tem[5]}},{{tem[6]}}],
+		}
+        ]
+        },
+    options: {
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                },
+                scaleLabel: {
+                  display: true,
+                  labelString: '\xB0' + 'C'
+                }
+            }],
+            xAxes: [{
+            }]
+        },
+        legend: {
+            display: false
+        }
+    }
+});
+
+var myChart = new Chart(ctx_fer, {
+    type: 'bar',
+    data: {
+	labels: ["Mon","Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        datasets: [
+                {
+                        backgroundColor: 'rgba(121,85,72,1)',
+                        borderWidth: 0,
+                        data: [{{fer[0]}},{{fer[1]}},{{fer[2]}},{{fer[3]}},{{fer[4]}},{{fer[5]}},{{fer[6]}}],
+                }
+        ]
+        },
+    options: {
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                },
+                scaleLabel: {
+                  display: true,
+                  labelString: 'us/cm'
+                }
+            }],
+            xAxes: [{
+            }]
+        },
+        legend: {
+            display: false
+        }
+    }
+});
+
+</script>
+
+{% endblock %}

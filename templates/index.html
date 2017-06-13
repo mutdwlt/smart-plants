@@ -17,7 +17,12 @@
             <p class="lead"></p>
             <p><a class="btn btn-lg btn-success" href="history" role="button"> View data report</a>
             </p>
-        </div>	
+        </div>
+	{% if session.logged_in and session.user_role == 1 %}
+	<div class="row" style="text-align: center; margin-bottom: 20px;">
+		<a href="/log">View system log</a>
+	</div>
+	{% endif %}	
 	<div class="row">
 		{% if session.logged_in and session.user_role == 1 %}
 		

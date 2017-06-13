@@ -8,6 +8,20 @@ from struct import *
 import schedule
 import time
 from threading import Thread
+import RPi.GPIO as GPIO
+
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+GPIO_FAN = 22
+GPIO_LED = 27
+GPIO_WATER = 17
+
+#setup the port as output
+GPIO.setup(GPIO_FAN, GPIO.OUT)
+GPIO.setup(GPIO_LED, GPIO.OUT)
+GPIO.setup(GPIO_WATER, GPIO.OUT)
 
 app = Flask(__name__)
 app.secret_key = "super secret key"
@@ -352,6 +366,52 @@ def editPlants():
                 sql = "UPDATE plants_info SET plants_name = '%s',sun_top = '%s',sun_bottom = '%s', moi_top = '%s', moi_bottom = '%s', tem_top = '%s', tem_bottom = '%s', fer_top = '%s', fer_bottom = '%s' WHERE id = 1" % (n_plants_name,n_sun_t,n_sun_b,n_moi_t,n_moi_b,n_tem_t,n_tem_b,n_fer_t,n_fer_b)
                 cursor.execute(sql)
                 conn.commit()
+		sql = "SELECT * FROM sensor_data_hour WHERE id = 2"
+		cursor.execute(sql)
+		results = cursor.fetchall()
+                for row in results:
+			c_sun = row[1]
+			c_moi = row[2]
+			c_tem = row[3]
+			c_light = row[7]
+			c_water = row[8]
+			c_fan = row[9]
+		time = datetime.datetime.now()
+		c_hour = time.strftime("%H")
+		time = time.strftime("%Y-%m-%d %H:%M:%S")
+		f = open("/home/pi/smartplants/smart-plants/system_log.txt","a")
+                f.write("%s UPDATE PLANTS INFO \n" % time)
+		n_sun_b = int(int(n_sun_b)*10.76/(0.71*24))
+        	n_sun_t = int(int(n_sun_t)*10.76/(0.71*2))
+		if c_sun > n_sun_t:
+			if c_light == 1:
+				GPIO.output(GPIO_LED,GPIO.LOW)
+                                f.write("%s [LIGHTING] is [OFF] \n" % time)
+				c_light = 0
+		if c_moi < int(n_moi_b):
+			if c_water == 0:
+				GPIO.output(GPIO_WATER,GPIO.HIGH)
+				f.write("%s [WATERING] is [ON] \n" % time)
+				c_water = 1
+		if c_moi > int(n_moi_t):
+			if c_water == 1:
+				GPIO.output(GPIO_WATER,GPIO.LOW)
+                                f.write("%s [WATERING] is [OFF] \n" % time)
+				c_water = 0
+		if c_fan == 0:
+			if c_moi > int(n_moi_t) or c_tem > float(n_tem_t):
+				GPIO.output(GPIO_FAN,GPIO.HIGH)
+                                f.write("%s [FAN] is [ON] \n" % time)
+                                c_fan = 1
+		else:
+			if c_moi < int(n_moi_t) and c_tem < float(n_tem_t):
+				GPIO.output(GPIO_FAN,GPIO.LOW)
+                                f.write("%s [FAN] is [OFF] \n" % time)
+                                c_fan = 0
+		sql = "UPDATE sensor_data_hour SET light = %d, water = %d, fan = %d" % (c_light,c_water,c_fan)
+                cursor.execute(sql)
+                conn.commit()
+		f.close()
                 cursor.close()
                 conn.close()
                 flash('Your plants has been updated successfully','success')
@@ -430,9 +490,10 @@ def log():
 	if not session.get('logged_in') or session['user_role'] == 0:
                 return redirect(url_for('main'))
         else:
-		f =open("device_log.txt","r")
+		f =open("system_log.txt","r")
 		lines = f.readlines()
 		f.close()
+		lines = reversed(lines)
                 return render_template('log.html',lines = lines)
 
 @app.route('/signUp',methods=['POST','GET'])
@@ -550,7 +611,7 @@ def history():
 	today = datetime.datetime.now().strftime("%Y-%m-%d")
         input_date = today
 	conn = mysql.connect()
-        cursor = conn.cursor()
+	cursor = conn.cursor()
         sql = 'SELECT * FROM plants_info WHERE id = 1'
         cursor.execute(sql)
         results = cursor.fetchall()
@@ -563,27 +624,64 @@ def history():
                 tem_t = row[7]
                 fer_b = row[8]
                 fer_t = row[9]
+	sql = 'SELECT DATE(time) FROM sensor_data ORDER BY id LIMIT 1'
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        for row in results:
+                min_date = row[0]
         cursor.close()
         conn.close()
 	if request.method == 'POST':
 		report_type = request.form['select1']
 		if report_type == '2':
-			x=1
+			input_date = request.form.get('date1')
+                        if input_date is None:
+                                input_date = today
+			tem = [0] * 7
+        		sun = [0] * 7
+        		moi = [0] * 7
+        		fer = [0] * 7
+			num = [0] * 7
+			conn = mysql.connect()
+        		cursor = conn.cursor()
+			sql="select WEEKDAY(time),sunlight,moisture,temperature,fertility from sensor_data where time between DATE_SUB('%s', INTERVAL WEEKDAY('%s')-1 DAY ) and  DATE_ADD('%s', INTERVAL 7-WEEKDAY('%s') DAY );" % (input_date,input_date,input_date,input_date)
+			cursor.execute(sql)
+        		results = cursor.fetchall()
+        		for row in results:
+				num[row[0]] += 1
+				tem[row[0]] += row[3]
+                		sun[row[0]] += int(round(row[1]*0.71/10.76))
+                		moi[row[0]] += row[2]
+                		fer[row[0]] += row[4]
+			cursor.close()
+        		conn.close()
+			for i in range(0,7):
+				if num[i] != 0:
+					moi[i] = int(round(float(moi[i])/num[i]))
+					tem[i] = float(tem[i]/num[i])
+					tem[i] = "%.1f" % tem[i]
+					fer[i] = int(round(float(fer[i])/num[i]))
+			input_date = datetime.datetime.strptime(input_date , '%Y-%m-%d')
+			day_of_week = input_date.weekday()
+			to_beginning_of_week = datetime.timedelta(days=day_of_week)
+    			beginning_of_week = input_date - to_beginning_of_week
+    			to_end_of_week = datetime.timedelta(days=6 - day_of_week)
+    			end_of_week = input_date + to_end_of_week
+			beginning_of_week = beginning_of_week.strftime("%Y-%m-%d")
+			end_of_week = end_of_week.strftime("%Y-%m-%d")
+			return render_template('history-week.html',sun=sun,tem=tem,moi=moi,fer=fer,monday=beginning_of_week,sunday=end_of_week,date=input_date,min_date=min_date,today=today)
 		elif report_type == '3':
 			x=1
 		elif report_type == '1':
-			input_date = request.form['date1']
+			input_date = request.form.get('date1')
+			if input_date is None:
+				input_date = today
 	tem = [0] * 24
 	sun = [0] * 24
 	moi = [0] * 24
 	fer = [0] * 24
 	conn = mysql.connect()
        	cursor = conn.cursor()
-	sql = 'SELECT DATE(time) FROM sensor_data ORDER BY id LIMIT 1'
-	cursor.execute(sql)
-	results = cursor.fetchall()
-	for row in results:
-		min_date = row[0]
      	sql = 'SELECT HOUR(time) AS hour,sunlight,moisture,temperature,fertility FROM sensor_data WHERE time LIKE \"' + input_date + '%\"' 
       	cursor.execute(sql)
       	results = cursor.fetchall()
@@ -602,7 +700,7 @@ def history():
 	min_fer = 0
 	max_fer = 0
 	for i in range(0,24):
-		sun[i] = int(sun[i]*0.71/10.76)
+		sun[i] = int(round(sun[i]*0.71/10.76))
 		sum_sun += sun[i] 
 		if moi[i] > max_moi:
 			max_moi=moi[i]
